@@ -1,0 +1,6 @@
+---
+- name: Allow Syncthing
+  when: runit_service_dir_check.stat.exists
+  community.general.ufw:
+    name: syncthing
+    rule: allow

@@ -1,0 +1,63 @@
+---
+- name: Make sure Calibre and NGINX installed
+  become: true
+  community.general.pacman:
+    name:
+      - calibre
+      - nginx
+    state: present
+    update_cache: true
+
+- name: Make sure nginx-runit installed
+  become: true
+  community.general.pacman:
+    name:
+      - nginx-runit
+    state: present
+  when: ansible_service_mgr == "runit"
+
+- name: Create NGINX conf.d
+  become: true
+  file:
+    path: /etc/nginx/conf.d/
+    state: directory
+
+- name: Include files on conf.d with *.conf
+  become: true
+  lineinfile:
+    path: /etc/nginx/nginx.conf
+    insertafter: "^http {$"
+    firstmatch: true
+    line: "    include /etc/nginx/conf.d/*.conf;"
+    state: present
+
+- name: Create NGINX config for Calibre
+  become: true
+  file:
+    path: /etc/nginx/conf.d/calibre-proxy.conf
+    state: touch
+
+- name: Reverse proxy for Calibre Content Server
+  become: true
+  blockinfile:
+    path: /etc/nginx/conf.d/calibre-proxy.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for Calibre Reverse Proxy"
+    block: |
+      server {
+         listen 80;
+         server_name localhost;
+         location /calibre {
+         proxy_pass http://127.0.0.1:8180;
+         }
+      }
+    state: present
+
+- name: Reload sv nginx
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  become: true
+  community.general.runit:
+    enabled: true
+    name: nginx
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: reloaded

@@ -1,0 +1,23 @@
+---
+- name: Installing Runit Specific Packages
+  loop: "{{ workstation_runit_packages }}"
+  ansible.builtin.package:
+    name: "{{ item.package }}"
+    state: present
+  become: true
+  tags:
+    - runit.workstation.install
+
+- name: Enabling Runit Services
+  # defined on runit_cli.yaml
+  when: runit_service_dir_check.stat.exists
+  loop: "{{ workstation_runit_packages }}"
+  community.general.runit:
+    enabled: true
+    name: "{{ item.service }}"
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+  become: true
+  tags:
+    - runit.workstation.enable

@@ -1,0 +1,34 @@
+---
+# tasks file for workstation_common
+- name: Install `workstation-common` packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ workstation_common_packages }}"
+  become: true
+
+- name: Install Runit Services
+  include_tasks: runit_ws.yaml
+  when: ansible_service_mgr == "runit"
+
+- name: Install `workstation_aur_common` packages
+  kewlfft.aur.aur:
+    use: paru
+    name: "{{ item }}"
+    state: present
+  loop: "{{ workstation_aur_common_packages }}"
+  become: true
+  become_user: aur_builder
+
+- name: Set up ufw
+  include_tasks: ufw_ws.yaml
+
+- name: Set up Calibre
+  include_tasks: calibre.yaml
+
+- name: Set up tlp
+  include_tasks: tlp.yaml
+
+- name: Set up Runit user-services
+  ansible.builtin.include_tasks: runit_userservices.yaml
+  when: ansible_service_mgr == "runit"

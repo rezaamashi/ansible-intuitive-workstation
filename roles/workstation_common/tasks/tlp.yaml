@@ -1,0 +1,41 @@
+---
+- name: Check if TLP installed
+  become: true
+  ansible.builtin.package:
+    name: tlp-runit
+    state: present
+
+- name: Check if TLP-UI installed
+  become: true
+  become_user: aur_builder
+  kewlfft.aur.aur:
+    name: tlpui
+    use: paru
+    state: present
+
+- name: Enable tlp-runit
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  become: true
+  community.general.runit:
+    enabled: true
+    name: tlp
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+
+- name: Disable broken sound optimization
+  become: true
+  lineinfile:
+    path: /etc/tlp.conf
+    regexp: "{{ item.find }}"
+    line: "{{ item.replace }}"
+    state: present
+  loop:
+    - {
+        find: "^SOUND_POWER_SAVE_ON_AC=1$",
+        replace: "SOUND_POWER_SAVE_ON_AC=0",
+      }
+    - {
+        find: "^SOUND_POWER_SAVE_ON_BAT=1$",
+        replace: "SOUND_POWER_SAVE_ON_BAT=0",
+      }
