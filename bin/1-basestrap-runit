@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# confirm that this script is being run from live-environment
+echo "Make sure you run this on the live-environment"
+
+cd /
+basestrap /mnt base base-devel linux linux-firmware runit elogind-runit neovim ansible git tmux &&
+fstabgen -U /mnt >> /mnt/etc/fstab &&
+cd -
+# artix-chroot /mnt "ansible-playbook /home/muna/.local/ansible/workstation/workstation.yaml" &&
+# umount -R /mnt &&
+# loginctl reboot

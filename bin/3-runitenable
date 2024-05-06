@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+#ansible-playbook /home/muna/.local/ansible/workstation workstation_runit.yaml &&

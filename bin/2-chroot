@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# make sure to run this within "artix-chroot /mnt"
+ansible-galaxy install -r ../requirements.yml
+ansible-playbook ../workstation.yaml
+echo "\n\n:: Next is 'umount -R /mnt' and 'loginctl reboot'"
