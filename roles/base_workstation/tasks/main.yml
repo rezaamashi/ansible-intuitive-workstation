@@ -1,0 +1,108 @@
+---
+# tasks file for minimal_workstation
+- name: Checking Distribution and Service Manager (sysinit)
+  debug: msg="{{ ansible_distribution }} - {{ ansible_service_mgr }}"
+
+- name: Install base packages
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ base_packages }}"
+
+- name: Install Grub
+  ansible.builtin.include_tasks: grub.yaml
+
+- name: Configure swapfile
+  ansible.builtin.include_tasks: swap.yaml
+
+# since swap also making modification on grub
+- name: Generate `grub` config file
+  ansible.builtin.command: grub-mkconfig -o {{ grub_directory }}/grub.cfg
+  become: true
+
+- name: Creating user `{{ user.name }}`
+  become: true
+  ansible.builtin.user:
+    name: "{{ user.name }}"
+    comment: "{{ user.full_name }}"
+    create_home: true
+    password: "{{ password }}"
+    groups:
+      - wheel
+      - input
+      - video
+    shell: /bin/zsh
+    state: present
+
+- name: Give `sudo` privilege to user `{{ user.name }}` through wheel
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers.d/10-ansible-wheel-all
+    state: present
+    line: "%wheel ALL=(ALL:ALL) ALL"
+    create: true
+    validate: "visudo -cf %s"
+
+- name: Give `doas` privilege to user `{{ user.name }}` through wheel
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/doas.conf
+    line: "permit persist :wheel"
+    create: true
+
+- name: Set up time zone
+  become: true
+  ansible.builtin.file:
+    src: /usr/share/zoneinfo/{{ timezone.region }}/{{ timezone.city }}
+    dest: /etc/localtime
+    state: link
+
+- name: Add `en_US.UTF-8` to `/etc/locale.gen`
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/locale.gen
+    block: |
+      {{ item.name }} {{ item.format }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ item.name }}"
+    state: present
+  loop: "{{ locale_list }}"
+
+- name: Configuring `/etc/locale.conf`
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/locale.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ item }}"
+    block: |
+      {{ item }}
+    state: present
+    create: true
+  loop: "{{ locale_env }}"
+
+- name: Ensuring `locales` exists
+  become: true
+  community.general.locale_gen:
+    name: "{{ item.name }}"
+    state: present
+  loop: "{{ locale_list }}"
+
+- name: Configuring `/etc/hostname`
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/hostname
+    line: "{{ hostname.lenovo }}"
+    state: present
+    create: true
+
+- name: Configuring `/etc/hosts`
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+
+      127.0.0.1 localhost
+      ::1 localhost
+      127.0.0.1 {{ hostname.lenovo }}.localdomain {{ hostname.lenovo }}
+
+    state: present

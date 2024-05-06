@@ -1,0 +1,56 @@
+---
+- name: Check if system using EFI or BIOS
+  stat:
+    path: /boot/efi
+    get_checksum: false
+  register: efi_dir_check
+
+- name: Install `grub` on BIOS system
+  when: not efi_dir_check.stat.exists
+  ansible.builtin.command: grub-install --target=i386-pc --recheck /dev/sdX
+  become: true
+
+- name: Install `grub` on EFI system
+  ansible.builtin.command: grub-install --target=x86_64-efi --efi-directory={{ efi_directory }} --bootloader-id=GRUB
+  become: true
+
+- name: Enabling `OS-PROBER` on grub
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    state: present
+    line: "GRUB_DISABLE_OS_PROBER=false"
+  become: true
+
+- name: Synchronize {{ grub_themename }} grub theme
+  become: true
+  ansible.posix.synchronize:
+    src: ../../../assets/grub-themes/{{ grub_themename }}/
+    dest: /usr/share/grub/themes/{{ grub_themename }}/
+    archive: false
+    recursive: true
+
+- name: Enabling {{ grub_themename }} grub theme
+  become: true
+  lineinfile:
+    path: /etc/default/grub
+    regexp: "^#GRUB_THEME=.*$"
+    firstmatch: true
+    line: GRUB_THEME="/usr/share/grub/themes/{{ grub_themename }}/theme.txt"
+    state: present
+
+- name: Add `Poweroff` and `Reboot` menu in grub
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/grub.d/40_custom
+    state: present
+    block: |
+      # These `class` name follows your themes icon filenames
+      # check the icon filenames on `/usr/share/grub/themes/[theme_name]`
+      # to ensure the correct `class` name
+      menuentry "Reboot" --class restart {
+        reboot
+      }
+      menuentry "Poweroff" --class shutdown {
+        halt
+      }
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for grub powermenu"

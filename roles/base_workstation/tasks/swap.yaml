@@ -1,0 +1,73 @@
+---
+- name: Check if swap file exists
+  stat:
+    path: "{{ swap_file_path }}"
+    get_checksum: false
+  register: swap_file_check
+  tags:
+    - swap.file.check
+
+- name: Create swap file
+  command: "dd if=/dev/zero of={{ swap_file_path }} bs=1G count={{ swap_file_size }} status=progress"
+  when: not swap_file_check.stat.exists
+  tags:
+    - swap.file.create
+
+- name: Change swap file permissions
+  file: path="{{ swap_file_path }}"
+    owner=root
+    group=root
+    mode=0600
+  tags:
+    - swap.file.permissions
+
+- name: Make swap file
+  command: "sudo mkswap {{ swap_file_path }}"
+  when: not swap_file_check.stat.exists
+  tags:
+    - swap.file.mkswap
+
+- name: Write swap entry in fstab
+  when: not swap_file_check.stat.exists
+  mount: src={{ swap_file_path }}
+    name=none
+    fstype=swap
+    opts=defaults
+    passno=0
+    dump=0
+    state=present
+  tags:
+    - swap.fstab
+
+- name: Mount swap
+  command: "swapon {{ swap_file_path }}"
+  when: not swap_file_check.stat.exists
+  tags:
+    - swap.file.swapon
+
+- name: Set swappiness
+  become: true
+  sysctl:
+    name: vm.swappiness
+    value: "{{ swappiness }}"
+  tags:
+    - swap.set.swappiness
+
+- name: Check UUID of {{ swap_file_path }} partition
+  command: "findmnt -no UUID -T {{ swap_file_path }}"
+  register: swap_uuid
+
+- name: Check swap file offset
+  shell: |
+    filefrag -v {{ swap_file_path }} | awk '$1=="0:" {print substr($4, 1, length($4)-2)}'
+  args:
+    executable: /bin/bash
+  register: swap_offset
+
+- name: Add UUID and resume_offset to grub
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX=".*"'
+    line: 'GRUB_CMDLINE_LINUX="resume=UUID={{ swap_uuid.stdout }} resume_offset={{ swap_offset.stdout }}"'
+    state: present
