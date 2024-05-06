@@ -1,0 +1,44 @@
+---
+# tasks file for workstation_gnome
+- name: Install `workstation_gnome_packages`
+  become: true
+  loop: "{{ workstation_gnome_packages }}"
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+
+- name: Install `workstation_aur_gnome_packages`
+  become: true
+  become_user: aur_builder
+  loop: "{{ workstation_aur_common_packages }}"
+  kewlfft.aur.aur:
+    use: paru
+    name: "{{ item }}"
+    state: present
+
+- name: Install gdm
+  become: true
+  ansible.builtin.package:
+    name: gdm
+    state: present
+
+- name: Install gdm-runit
+  when: ansible_service_mgr == "runit"
+  become: true
+  ansible.builtin.package:
+    name: gdm-runit
+    state: present
+
+- name: Install and set up `plymouth` with gdm-runit
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  ansible.builtin.include_tasks: plymouth-runit.yaml
+
+- name: Enabling gdm-runit
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  become: true
+  community.general.runit:
+    enabled: true
+    name: gdm
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
