@@ -1,2 +1,10 @@
-#+title: Progress-Based Ansible Workstation Config
+#+title: Progress-Based Ansible Workstation Playbooks
 #+AUTHOR: Reza Amasyi
+
+* Why Consequential?
+Instead of making multiple modular roles, I decided to make my Ansible playbooks to be more inline with the process of standard OS installation. This granted a more intuitive overview of the installation process.
+
+* Notes
+Fix:
+- [ ] dconf.yaml
+- [ ] cron.yaml
