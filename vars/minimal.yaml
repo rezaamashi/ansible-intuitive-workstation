@@ -1,0 +1,199 @@
+---
+hostname:
+  laptop: artix-laptop
+  lenovo: artix-lenovo
+  thinkpad: artix-thinkpad
+  workstation: artix-workstation
+  server: artix-server
+
+user:
+  name: muna
+  full_name: Siti Munawaroh
+#  - reza:
+#      name: reza
+#      full_name: Reza Amashi
+
+timezone:
+  region: Asia
+  city: Jakarta
+
+locale_list:
+  - { name: en_US.UTF-8, format: UTF-8 }
+  - { name: en_GB.UTF-8, format: UTF-8 }
+  - { name: ar_SA.UTF-8, format: UTF-8 }
+  - { name: id_ID.UTF-8, format: UTF-8 }
+
+locale_env:
+  - LANG=en_US.UTF-8
+  - LANGUAGE="C"
+  - LC_ALL="C"
+  - LC_COLLATE="C"
+
+base_packages:
+  - base
+  - ansible
+  - linux
+  - linux-firmware
+  - neovim
+  - intel-ucode # or amd-ucode
+  - rsync
+  - git
+  - grub
+  - os-prober
+  - ntfs-3g
+  - efibootmgr
+  - dosfstools
+
+cli_runit_packages:
+  - { package: ntp-runit, service: ntpd }
+  - { package: networkmanager-runit, service: NetworkManager }
+  - { package: ufw-runit, service: ufw }
+  - { package: nginx-runit, service: nginx }
+  - { package: cronie-runit, service: cronie }
+  - { package: openssh-runit, service: sshd }
+
+cli_workstation_packages:
+  - base-devel
+  - pacman-contrib
+  - bat
+  - reflector
+  - man-db
+  - inotify-tools
+  - gdu
+  - lf
+  - ripgrep-all
+  - fd
+  - fzf
+  - zsh
+  - navi
+  - opendoas
+  - eza
+  - certbot-nginx
+  - ttc-iosevka
+  - ttf-nerd-fonts-symbols
+  - unrar
+  - unzip
+  - tmux
+  - rustup
+  - xdg-utils
+  - xdg-user-dirs
+
+cli_aur_packages:
+  - paru-bin
+  - downgrade
+  - antigen
+  - htim
+
+workstation_runit_packages:
+  - { package: tlp-runit, service: tlp }
+  - { package: cups-runit, service: cupsd }
+  - { package: bluez-runit, service: bluetoothd }
+
+workstation_common_packages:
+  - audacious
+  - audacious-plugins
+  - aspell
+  - aspell-en
+  - xf86-video-intel
+  - calibre
+  - bluez-utils
+  - fastfetch
+  - librewolf
+  - chromium
+  - uget
+  - libreoffice-fresh
+  - emacs-wayland
+  - enchant # for jinx - spell
+  - isync
+  - notmuch
+  - msmtp
+  - prettier
+  - transmission-gtk
+  - podman-compose
+  - wev
+  - wmctrl # for libinput-gestures and safeeyes
+  - python-croniter # for safeeyes health stats
+  - zathura
+  - zathura-pdf-mupdf
+  - zathura-djvu
+
+workstation_minimal_packages:
+  - network-manager-applet
+  - dunst
+  - dash
+  - blueman
+  - pavucontrol
+  - pipewire-pulse
+  - wireplumber
+  - playerctl
+  - hyprlock
+  - hypridle
+  - grim
+  - slurp
+  - imv
+  - nemo
+  - nemo-fileroller
+  - nvm
+  - lxappearance
+  - qt5ct
+  - qt5-styleplugins
+  - polkit-gnome
+  - udiskie
+  - waybar
+  - zenity
+
+workstation_gnome_packages:
+  - gnome-shell
+  - xdg-desktop-portal-gnome
+
+workstation_aur_common_packages:
+  - brave-bin
+  - meta-group-texlive-most
+  - mpv-autosubsync-git
+  - mpv-mpvacious
+  - mpv-sponsorblock-minimal-git
+  - mpv-thumbfast-git
+  - safeeyes-git
+  - syncthing-gtk
+  - yt-watch-git
+  - zaread-git
+  - sioyek
+  - ventoy-bin
+  - zotero-bin
+
+workstation_aur_minimal_packages:
+  - alacritty-sixel-git
+  - anki-bin
+  - amazon-fonts
+  - inter-font
+  - catppuccin-gtk-theme-frappe
+  - eww-wayland
+  - gruvbox-material-gtk-theme-git
+  - gruvbox-material-icon-theme-git
+  - hyprland-git
+  - brightnessctl
+  - phinger-cursors
+  - gestures # gui for libinput-gestures
+  - ttf-material-design-icons-extended
+  - papirus-icon-theme-git
+  - noto-fonts-emoji
+  - otf-font-awesome
+  - pulseaudio-control
+  - rofi-lbonn-wayland-git
+  #- spotify-adblock-git
+  - tlpui
+  - swww-git
+  - wl-clipboard-history-git
+  - wlsunset
+  - xdg-desktop-portal-hyprland
+  # - informant
+
+workstation_aur_gnome_packages:
+
+efi_directory: /boot/efi
+swap_file_path: /swapfile
+swappiness: 1
+grub_directory: /boot/grub
+grub_themename: lenovo
+sddm_themename: sugar-candy
+terminal_emulator: alacritty

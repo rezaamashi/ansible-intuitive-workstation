@@ -1,0 +1,8 @@
+---
+- name: Base Workstation
+  hosts: all
+  vars_files:
+    - minimal.yaml
+
+  roles:
+    - role: base_workstation

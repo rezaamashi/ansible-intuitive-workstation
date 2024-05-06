@@ -1,0 +1,8 @@
+---
+- name: CLI Workstation
+  hosts: all
+  vars_files:
+    - minimal.config.yaml
+  roles:
+    - { role: base_workstation }
+    - { role: cli_workstation }

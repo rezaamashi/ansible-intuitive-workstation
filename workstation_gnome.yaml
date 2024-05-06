@@ -1,0 +1,22 @@
+---
+- name: Workstation
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+    - minimal.config.yaml
+
+  vars_prompt:
+    - name: password
+      prompt: Your password for `{{ user.name }}` ?
+      private: true
+      encrypt: sha512_crypt
+      confirm: true
+    - name: swap_file_size
+      prompt: How big do you want your `swapfile` (in GB)?
+      private: false
+
+  roles:
+    - { role: base_workstation }
+    - { role: cli_workstation }
+    - { role: workstation_common }
+    - { role: workstation_gnome }
