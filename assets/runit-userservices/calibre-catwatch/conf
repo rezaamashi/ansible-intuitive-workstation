@@ -1,0 +1,20 @@
+# -*- mode:sh; -*-
+
+# Varibles
+USER="$(whoami)"
+HOME="/home/${USER}"
+CALIBRE_ICON_PATH="/usr/share/icons/hicolor/16x16/apps/calibre-gui.png"
+CALIBRELIB="${HOME}/Documents/Calibre"
+CALIBREDB="${CALIBRELIB}/metadata.db"
+CALIBREBIBTEX="${HOME}/Documents/Reza/BibTeX/Calibre-Catalog.bib"
+BIBTEXFIELDS="authors,author_sort,title,title_sort,cover,formats,id,isbn,library_name,ondevice,pubdate,publisher,rating,series_index,series,size,tags,timestamp,uuid,languages,identifiers,#pages,#read,comments"
+XDG_RUNTIME_DIR=/run/user/1000/
+SERVICE_NAME=calibre-catwatch
+
+# Additional command line arguments for emacs(1).
+OPTS=""
+
+# Setting this to 1 enables logging, any other value - disables.
+LOGGING_ENABLE=1
+# The directory will be created for you, if logging is enabled.
+LOG_DIR="${HOME}/.cache/log/${SERVICE_NAME}"

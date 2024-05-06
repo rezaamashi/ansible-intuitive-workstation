@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+[ -r ./conf ] && . ./conf
+
+echo ":: $(basename $(pwd)) service is started..."  &&
+cd "$HOME" && 
+    exec a2ln ${OPTS:-} 2>&1

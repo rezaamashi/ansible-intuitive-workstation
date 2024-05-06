@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+[ -r ./conf ] && . ./conf
+
+move_to_folder() {
+  file=$1
+  ext=${file##*.}
+  case $ext in
+    pdf|docx|doc|ppt|pptx|xls|xlsx|txt)
+      mv "$file" "${DOCUMENTS_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${DOCUMENTS_DIR}"
+      ;;
+    jpg|jpeg|gif|png|svg|psd|webp)
+      mv "$file" "${PICTURE_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${PICTURE_DIR}"
+      ;;
+    mp4|mkv|mov|webm)
+      mv "$file" "${VIDEO_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${VIDEO_DIR}"
+      ;;
+    mp3|flac|opus|aac)
+      mv "$file" "${MUSIC_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${MUSIC_DIR}"
+      ;;
+    json|csv)
+      mv "$file" "${DATA_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${DATA_DIR}"
+      ;;
+    epub|djvu|mobi|azw3)
+      mv "$file" "${BOOK_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${BOOK_DIR}"
+      ;;
+    apk)
+      mv "$file" "${ANDROID_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${ANDROID_DIR}"
+      ;;
+    zip|tar|gz|rar|7zip)
+      mv "$file" "${COMPRESSED_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${COMPRESSED_DIR}"
+      ;;
+    iso|img)
+      mv "$file" "${DISKIMAGE_DIR}"
+      echo ":: (${function_name}) Moved ${file} to ${DISKIMAGE_DIR}"
+      ;;
+    *)
+      # Other file types can stay in Download folder
+      ;;
+  esac
+}
+
+error_handler() {
+  ERROR_MESSAGE="$1"
+  echo ":: Error: ${ERROR_MESSAGE}"
+  sv down "${HOME}/.local/runit/run/hazeliked"
+  echo ":: Hazelike-daemon killed..."
+  exit 1
+}
+
+cleanup_old_files() {
+  local function_name="download-trasher"
+  echo ":: (${function_name}) Download subfolders trasher started..."
+  while true; do
+    today=$(date +%d)
+    complete_date=$(date)
+    if [ "${today}" -eq "${DAY_OF_THE_MONTH}" ]; then
+      echo ":: (${function_name}) Today is ${complete_date}"
+      echo ":: (${function_name}) Looking for file older than ${FILE_DAYAGE} days in Download subfolders..." 
+      find ${HOME}/Download/*/* -type d,f -mtime +"${FILE_DAYAGE}" -exec send2trash -v {} \; 2>&1 | tee "${trashed_log}" || echo ":: (${function_name}) No file older than ${FILE_DAYAGE} days in Download subfolders..."
+    else
+      echo ":: (${function_name}) Today is not the trashing day, idling..."
+    fi
+    sleep 3600 # to prevent CPU overload
+  done
+}
+
+watch_downloads() {
+  local function_name="download-cleaner"
+  mkdir -p "${DOCUMENTS_DIR}" "${PICTURE_DIR}" "${VIDEO_DIR}" "${MUSIC_DIR}" "${DATA_DIR}" "${BOOK_DIR}" "${ANDROID_DIR}" "${COMPRESSED_DIR}" "${DISKIMAGE_DIR}"
+  echo ":: (${function_name}) Download folder cleaner started..."
+  while true; do
+    inotifywait -e create,moved_to "${DOWNLOAD_DIR}" &&
+    echo ":: (${function_name}) Watching for changes in Download..."
+    for file in "${DOWNLOAD_DIR}"/*; do
+      if [ -f "$file" ]; then
+      move_to_folder "$file" ||  error_handler ":: (${function_name}) Failed to move ${file}, exiting..."
+      fi
+    done
+  done
+}
+
+watch_syncbooks() {
+  local function_name="syncbook-copier"
+  mkdir -p "${DOCUMENTS_DIR}" "${PICTURE_DIR}" "${VIDEO_DIR}" "${MUSIC_DIR}" "${DATA_DIR}" "${BOOK_DIR}" "${ANDROID_DIR}" "${COMPRESSED_DIR}" "${DISKIMAGE_DIR}"
+  echo ":: (${function_name}) Syncthing books folder copier started..."
+  while true; do
+    inotifywait -e create,moved_to "${SYNCBOOK_DIR}" &&
+    echo ":: (${function_name}) Watching for changes in ${SYNCBOOK_DIR}..."
+    for file in "${SYNCBOOK_DIR}"/*; do
+      if [ -f "$file" ]; then
+       mv "$file" "${BOOK_DIR}" ||  error_handler ":: (${function_name}) Failed to move ${file}, exiting..."
+      fi
+    done
+  done
+}
+
+cd "${HOME}" &&
+  echo ":: Hazelike-daemon started..."
+  cleanup_old_files 2>&1 &
+  watch_syncbooks 2>&1 &
+  watch_downloads  2>&1

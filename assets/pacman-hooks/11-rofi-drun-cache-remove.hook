@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Cleaning rofi-drun-desktop.cache...
+When = PostTransaction
+Exec = /bin/sh -c "rm /home/muna/.cache/rofi-drun-desktop.cache 1>&/dev/null && echo -e '\trofi-drun-desktop.cache removed' || echo -e '\trofi-drun-desktop.cache not found'"

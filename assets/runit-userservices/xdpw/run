@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Wait for the PipeWire daemon to start
+sv check "$HOME/.local/runit/run/pipewire" > /dev/null || exit 1
+
+[ -r ./conf ] && . ./conf
+
+if [ $XDG_SESSION_TYPE=wayland ]; then
+	killall xdg-desktop-portal-wlr
+	killall xdg-desktop-portal
+	sleep 10
+	exec /usr/lib/xdg-desktop-portal-wlr ${OPTS:-} 2>&1
+else
+	env SVDIR=$HOME/.local/runit/run sv down xdpw
+fi

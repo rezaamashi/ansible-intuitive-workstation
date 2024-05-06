@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+pkill mbsync
+echo ":: MailSync daemon killed"
+notify-send -i emblem-mail -a "Mailsyncd" "Mailsync Daemon is killed"
+ 

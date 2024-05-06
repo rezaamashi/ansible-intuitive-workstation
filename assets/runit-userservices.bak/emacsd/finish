@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+function NotificationKilled() {
+    echo ":: Emacs daemon killed"
+	notify-send -i ${EMACS_ICON_PATH:-} -a Emacs "Server is killed"
+}
+
+[ -r ./conf ] && . ./conf
+
+NotificationKilled

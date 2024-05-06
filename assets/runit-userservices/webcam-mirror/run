@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Emulating mirror capability for webcam
+
+[ -r ./conf ] && . ./conf
+
+webcam_mirror() {
+  if pacman -Qq v4l2loopback-dkms > /dev/null 2>&1; then
+    for ((i=0; i<=9; i++)); do
+      exec setsid ffmpeg -i /dev/video${i} -vf hflip -pix_fmt yuyv422 -f v4l2 /dev/video9 &
+      FFMPEG_PID=$!
+      CAPTURE_USER=$(zenity --question --text "Is /dev/video$i the correct video device?" --ok-label="Yes" --cancel-label="No" --extra-button="Cancel")
+      SELECTED=`echo $CAPTURE_USER | tr -d '\n'`
+      if [ "$SELECTED" = "Yes" ]; then
+        VIDEO_DEVICE=$i
+        break
+      elif [ "$SELECTED" = "No" ]; then
+        kill ${FFMPEG_PID}
+        continue
+      else 
+        kill ${FFMPEG_PID}
+        notify-send -a "runit" "Webcam mirroring cancelled" "The service has been stopped"
+        sv down ${HOME}/.local/runit/sv/webcam-mirror
+        exit
+      fi
+      kill ${FFMPEG_PID}
+    done
+    exec setsid ffmpeg -i /dev/video${VIDEO_DEVICE} -vf hflip -pix_fmt yuyv422 -f v4l2 /dev/video9
+    notify-send -a "runit" "Webcam Flipped" "Only run this when needed"
+  else
+    echo -e ":: Error: You don't have v4l2loopback-dkms installed\n\
+:: 1. Install it first using pacman\n\
+:: 2. Run : sudo modprobe v4l2loopback video_nr=9 card_label='Webcam flipped'\n\
+:: 3. Check which webcam you want to use with : ffplay /dev/video...\n\
+:: 4. Put the video device name (video0,..) into conf file of this service"
+    notify-send -a "runit" "Unable to flip Webcam" "Install and set up v4l2loopback-dkms first"
+    sv down ${HOME}/.local/runit/sv/webcam-mirror
+  fi
+}
+
+cd "${HOME}" &&
+  echo ":: Flipping webcam..."
+  webcam_mirror "${OPTS:-}" 2>&1

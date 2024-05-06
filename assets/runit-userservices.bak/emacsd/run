@@ -1,0 +1,21 @@
+#!/bin/sh
+export XDG_RUNTIME_DIR=/run/user/1000
+DAEMON_SERVER="${XDG_RUNTIME_DIR}/emacs/server"
+
+function NotificationSuccess() {
+    while true; do
+        if [ -e "${DAEMON_SERVER}" ]; then
+	        notify-send -i ${EMACS_ICON_PATH:-} -a Emacs "Server is ready"
+	        break
+	    else
+	        sleep 2 &&
+	        true
+	    fi
+    done
+}
+
+[ -r ./conf ] && . ./conf
+
+NotificationSuccess &
+cd $HOME &&
+	exec emacs --with-profile=${CHEMACS_PROFILE:-} --fg-daemon=${DAEMON_SERVER} ${OPTS:-} 2>&1

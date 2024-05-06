@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+[ -r ./conf ] && . ./conf
+
+notmuchNotify() {
+  if [ $? -eq 0 ]; then
+    notmuch new
+    if [ $? -eq 0 ]; then
+#      local new_emails=$(notmuch search tag:new | wc -l)
+      local unread_emails=$(notmuch search tag:unread | wc -l)
+      if [ "$unread_emails" -ne 0 ]; then
+#        notify-send -i emblem-mail -a "Notmuch" "You have: $new_emails new email(s) and $unread_emails unread email(s)"
+        notify-send -i emblem-mail -a "Notmuch" "You have: $unread_emails unread email(s)"
+      fi
+      echo ":: Synching mail successful"
+    else 
+        echo ":: Synching mail unsuccessful: Error in notmuch"
+    fi
+  else
+    echo ":: Synching mail unsuccessful: Error in mbsync"
+  fi
+}
+
+mailSync() {
+    while true; do 
+      echo ":: Mail sync will start in 5 minutes..."
+      sleep 300
+      # only run `mbsync` when no other instances exists
+      if pgrep -fl mbsync >/dev/null; then
+        echo ":: Waiting for running mbsync instances to close..."
+        sleep 10 &&
+        true
+      else
+        echo ":: Synching mail using isync..."
+        #notify-send -i emblem-mail -a "mailsyncd" "Mail syncing is in progress..."
+        mbsync -c $XDG_CONFIG_HOME/mbsync/mbsyncrc -a -V
+        notmuchNotify
+        break
+      fi
+    done
+}
+
+main() {
+  # keep `mailsyncd` running
+  while true;do
+    mailSync
+  done
+}
+
+cd "${HOME}" &&
+  echo ":: MailSync daemon started..."
+  main "${OPTS:-}" 2>&1

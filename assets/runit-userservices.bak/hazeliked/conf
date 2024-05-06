@@ -1,0 +1,38 @@
+# -*- mode:sh; -*-
+
+# Varibles
+USER=$(whoami)
+HOME=/home/${USER}
+XDG_RUNTIME_DIR=/run/user/1000/
+SERVICE_NAME=hazeliked
+# Download folder cleanup
+# Origins
+DOWNLOAD_DIR="${HOME}/Download"
+TORRENT_DIR="${HOME}/Download/Torrent"
+# Targets/subfolder
+DOCUMENTS_DIR="$HOME/Download/Document/"
+PICTURE_DIR="$HOME/Download/Picture/"
+VIDEO_DIR="$HOME/Download/Video/"
+MUSIC_DIR="$HOME/Download/Music/"
+DATA_DIR="$HOME/Download/Data/"
+BOOK_DIR="$HOME/Download/Book/"
+ANDROID_DIR="$HOME/Download/Android/"
+COMPRESSED_DIR="$HOME/Download/Compressed/"
+DISKIMAGE_DIR="$HOME/Download/DiskImage/"
+# Syncthing book transfer origin
+SYNCBOOK_DIR="$HOME/Syncthing/Books"
+
+# Subfolder file trasher
+# The age of the file to be trashed
+FILE_DAYAGE=150
+# Date of the moonth when the file is trashed 
+# (include 0 for single digit date like 05)
+DAY_OF_THE_MONTH=25
+
+# Additional command line arguments for this service.
+OPTS=""
+
+# Setting this to 1 enables logging, any other value - disables.
+LOGGING_ENABLE=1
+# The directory will be created for you, if logging is enabled.
+LOG_DIR="${HOME}/.cache/log/${SERVICE_NAME}"

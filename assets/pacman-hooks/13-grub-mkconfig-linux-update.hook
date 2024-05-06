@@ -1,0 +1,12 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Type = Package
+Target = linux
+Target = linux-lts
+Target = linux-zen
+
+[Action]
+Description = Making GRUB configuration after linux update...
+When = PostTransaction
+Exec = /bin/sh -c "grub-mkconfig -o /boot/grub/grub.cfg"

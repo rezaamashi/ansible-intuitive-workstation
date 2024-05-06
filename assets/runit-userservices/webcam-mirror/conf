@@ -1,0 +1,19 @@
+# -*- mode:sh; -*-
+
+# Varibles
+USER="$(whoami)"
+HOME="/home/${USER}"
+# Change this accordingly
+# to check the correct device by using
+# `ffplay /dev/video...`
+# VIDEO_DEVICE="video2"
+XDG_RUNTIME_DIR=/run/user/1000/
+SERVICE_NAME=webcam-mirror
+
+# Additional command line arguments for emacs(1).
+OPTS=""
+
+# Setting this to 1 enables logging, any other value - disables.
+LOGGING_ENABLE=1
+# The directory will be created for you, if logging is enabled.
+LOG_DIR="${HOME}/.cache/log/${SERVICE_NAME}"

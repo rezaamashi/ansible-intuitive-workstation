@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Wait for the xdg-desktop-portal-wlr daemon to start
+sv check "$HOME/.local/runit/run/xdpw" > /dev/null || exit 1
+
+[ -r ./conf ] && . ./conf
+
+if [ $XDG_SESSION_TYPE=wayland ]; then
+	killall xdg-desktop-portal
+	sleep 15 
+	exec /usr/lib/xdg-desktop-portal ${OPTS:-} 2>&1
+else
+	env SVDIR=$HOME/.local/runit/run sv down xdp
+fi

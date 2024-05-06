@@ -1,0 +1,13 @@
+[Trigger]
+Operation = Upgrade
+Operation = Install
+Type = Package
+Target = hyprland-git
+Target = hyprland-bin
+Target = hyprland
+
+[Action]
+Description = Replacing Hyprland session desktop executable...
+Depends = coreutils
+When = PostTransaction
+Exec = /usr/bin/sed -i "s/\(Exec=\)\(.*\)/\1\/home\/muna\/.config\/hypr\/hyprundm/" /usr/share/wayland-sessions/hyprland.desktop
