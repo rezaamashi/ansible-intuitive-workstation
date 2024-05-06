@@ -1,0 +1,47 @@
+---
+- name: Install `plymouth`
+  ansible.builtin.package:
+    name: "plymouth"
+    state: present
+  become: true
+
+- name: Add `plymouth` hook to `/etc/mkinitcpio.conf`
+  ansible.builtin.lineinfile:
+    path: /etc/mkinitcpio.conf
+    firstmatch: true
+    state: present
+    regexp: "^HOOKS=(.*)$"
+    line: "HOOKS=(base udev plymouth autodetect microcode modconf kms keyboard keymap consolefont block resume filesystems fsck)"
+  become: true
+
+- name: Add kernel parameters to `/etc/default/grub`
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    state: present
+    firstmatch: true
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT=".*"$'
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet loglevel=3 splash udev.log_level=3 vt.global_cursor_default=0"'
+  become: true
+
+- name: Regenerate `grub.cfg`
+  ansible.builtin.command: grub-mkconfig -o {{ grub_directory }}/grub.cfg
+
+- name: Install `plymouth-theme-hexagon-dots-alt-git` from AUR
+  kewlfft.aur.aur:
+    use: paru
+    name: "plymouth-theme-hexagon-dots-alt-git"
+    state: present
+  become: true
+  become_user: aur_builder
+
+- name: Set `plymouth-hexagon-dots-alt` as default theme and run `mkinitcpio`
+  ansible.builtin.command: plymouth-set-default-theme -R hexagon_dots_alt
+  become: true
+
+- name: Add `plymouth quit` to `sddm-runit`
+  ansible.builtin.lineinfile:
+    path: /etc/runit/sv/sddm/run
+    state: present
+    insertbefore: "exec sddm 2>&1"
+    line: "plymouth --quit"
+  become: true

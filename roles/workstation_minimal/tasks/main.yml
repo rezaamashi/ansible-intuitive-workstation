@@ -1,0 +1,27 @@
+---
+# tasks file for workstation_minimal
+- name: Install `workstation_minimal` packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ workstation_minimal_packages }}"
+  become: true
+
+- name: Install `workstation_aur_minimal_packages`
+  kewlfft.aur.aur:
+    use: paru
+    name: "{{ item }}"
+    state: present
+  loop: "{{ workstation_aur_minimal_packages }}"
+  become: true
+  become_user: aur_builder
+
+#- name: Setting up `gtk` apps
+#  ansible.builtin.include_tasks: dconf.yaml
+
+- name: Install and set up `plymouth` with gdm-runit
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  ansible.builtin.include_tasks: plymouth-runit.yaml
+
+- name: Install sddm
+  ansible.builtin.include_tasks: sddm.yaml

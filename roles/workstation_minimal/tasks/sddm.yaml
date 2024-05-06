@@ -1,0 +1,71 @@
+---
+- name: Ensuring `sddm` is installed
+  become: true
+  community.general.pacman:
+    name:
+      - sddm
+      # required by sddm theme sugar-candy
+      - qt5-graphicaleffects
+      - qt5-quickcontrols2
+    state: present
+
+- name: Ensuring `sddm-runit` is installed
+  become: true
+  community.general.pacman:
+    name:
+      - sddm-runit
+    state: present
+  when: ansible_service_mgr == "runit"
+
+- name: Synchronize {{ sddm_themename }} sddm theme
+  become: true
+  ansible.posix.synchronize:
+    src: ../../../assets/sddm-themes/{{ sddm_themename }}/
+    dest: /usr/share/sddm/themes/{{ sddm_themename }}/
+    archive: false
+    recursive: true
+
+- name: Configure `sddm` and enable {{ sddm_themename }}
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/sddm.conf
+    block: |
+      [General]
+      Numlock=on
+
+      [Theme]
+      Current={{ sddm_themename }}
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for sddm_theme"
+    state: present
+    create: true
+
+- name: Enable tap-to-click in sddm
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/X11/xorg.conf.d/20-touchpad.conf
+    block: |
+      Section "InputClass"
+              Identifier "libinput touchpad catchall"
+              MatchIsTouchpad "on"
+              MatchDevicePath "/dev/input/event*"
+              Driver "libinput"
+
+              Option "Tapping" "on"
+              Option "NaturalScrolling" "on"
+              Option "MiddleEmulation" "on"
+              Option "DisableWhileTyping" "on"
+      EndSection
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for sddm tap-to-click"
+    create: true
+
+- name: Enabling `sddm` runit services
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
+  community.general.runit:
+    enabled: true
+    name: sddm
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+  become: true
+  tags:
+    - runit.workstation.enable

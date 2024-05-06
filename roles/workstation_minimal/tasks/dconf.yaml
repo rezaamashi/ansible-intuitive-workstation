@@ -1,0 +1,6 @@
+---
+- name: Setting `{{ terminal_emulator }}` as default terminal for `nemo`
+  community.general.dconf:
+    key: "/org/cinnamon/desktop/default-applications/terminal"
+    value: "exec alacritty"
+    state: present
