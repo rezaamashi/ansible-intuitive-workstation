@@ -1,0 +1,75 @@
+---
+- name: Installing Runit Specific Packages
+  loop: "{{ cli_runit_packages }}"
+  ansible.builtin.package:
+    name: "{{ item.package }}"
+    state: present
+  become: true
+  tags:
+    - runit.cli.install
+
+- name: Installing rsm... remember to install <1.4.9
+  become: true
+  ansible.builtin.package:
+    name: rsm
+    state: present
+  tags:
+    - runit.cli.install
+
+- name: Allow the `{{ user.name }}` user to run `sudo rsm` without a password
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers.d/12-ansible-{{ user.name }}-rsm-nopass
+    line: "{{ user.name }} ALL=(ALL) NOPASSWD: /usr/bin/rsm"
+    create: true
+    validate: "visudo -cf %s"
+
+- name: Allow the `{{ user.name }}` user to run `doas rsm` without a password
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/doas.conf
+    line: "permit nopass {{ user.name }} cmd rsm"
+    create: true
+
+- name: Checking if service directory exists
+  become: true
+  stat:
+    path: "/run/runit/service"
+  register: runit_service_dir_check
+  tags:
+    - runit.service.check
+
+- name: Enabling Runit Services
+  when: runit_service_dir_check.stat.exists
+  loop: "{{ cli_runit_packages }}"
+  community.general.runit:
+    enabled: true
+    name: "{{ item.service }}"
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+  become: true
+  tags:
+    - runit.cli.enable
+
+- name: Make sure ntp is installed
+  ansible.builtin.package:
+    name: "ntp"
+    state: present
+  become: true
+
+- name: Make sure ntp-runit is enabled
+  when: runit_service_dir_check.stat.exists
+  community.general.runit:
+    enabled: true
+    name: ntpd
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+  become: true
+  tags:
+    - runit.cli.enable
+
+- name: Sync Hardwareclock
+  command: hwclock --systohc
+  become: true

@@ -1,0 +1,68 @@
+---
+- name: Make sure dnscrypt-proxy is installed
+  become: true
+  ansible.builtin.package:
+    name: dnscrypt-proxy
+    state: present
+
+- name: Make sure if networkmanager-runit is installed
+  when: ansible_service_mgr == "runit"
+  become: true
+  ansible.builtin.package:
+    name: networkmanager-runit
+    state: present
+  register: nm_runit_check
+  tags:
+    - runit.service.check
+
+- name: Checking if its runit service is installed
+  when: ansible_service_mgr == "runit"
+  become: true
+  ansible.builtin.package:
+    name: dnscrypt-proxy-runit
+    state: present
+
+- name: Configuring dnscrypt-proxy
+  become: true
+  lineinfile:
+    path: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+    insertafter: "^# server_names.*$"
+    firstmatch: true
+    line: "server_names = [ 'cloudflare', 'cloudflare-ipv6', 'google', 'scaleway-fr', 'yandex' ]"
+    state: present
+
+- name: Making sure resolv.conf is exists and mutable
+  become: true
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    attributes: -i
+    state: file
+
+- name: Syncing resolv.conf
+  when: runit_service_dir_check.stat.exists
+  become: true
+  ansible.builtin.synchronize:
+    src: ../files/resolv.conf
+    dest: /etc/resolv.conf
+
+- name: Turning the synced resolv.conf immutable
+  become: true
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    attributes: +i
+    state: file
+
+- name: Reloading networkmanager and dnscrypt Runit
+  when: runit_service_dir_check.stat.exists
+  community.general.runit:
+    enabled: true
+    name: "{{ item }}"
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: restarted
+  become: true
+  loop:
+    - dnscrypt-proxy
+    - NetworkManager
+  tags:
+    - runit.cli.enable

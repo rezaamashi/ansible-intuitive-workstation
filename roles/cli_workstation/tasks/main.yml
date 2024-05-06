@@ -1,0 +1,54 @@
+---
+# tasks file for cli_workstation
+- name: Optimize `pacman`
+  ansible.builtin.include_tasks: pacman.yaml
+
+- name: Install cli-workstation packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ cli_workstation_packages }}"
+  become: true
+
+#- name: Synchronize `.config` for root
+#  become: true
+#  ansible.posix.synchronize:
+#    src: ../../assets/dotconfig/
+#    dest: /home/root/.config/
+#    archive: false
+#    recursive: true
+
+- name: Configure Runit
+  when: ansible_service_mgr == "runit"
+  include_tasks: runit_cli.yaml
+
+- name: Configure firewall with ufw
+  include_tasks: ufw_cli.yaml
+
+- name: Configure dnscrypt
+  include_tasks: dnscrypt.yaml
+
+- name: Configure cron jobs
+  include_tasks: cron_cli.yaml
+
+- name: Configure tmux
+  include_tasks: tmux.yaml
+
+- name: Optimize `paru`
+  ansible.builtin.include_tasks: paru.yaml
+
+- name: Install `cli_aur_packages`
+  kewlfft.aur.aur:
+    use: paru
+    name: "{{ item }}"
+    state: present
+  loop: "{{ cli_aur_packages }}"
+  become: true
+  become_user: aur_builder
+#- name: Ensuring `{{ user.name }}` as part of group `informant`
+#  become: true
+#  ansible.builtin.user:
+#    name: "{{ user.name }}"
+#    groups:
+#      - informant
+#    state: present

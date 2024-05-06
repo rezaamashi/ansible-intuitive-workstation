@@ -1,0 +1,74 @@
+---
+- name: Synchronize personal pacman hooks
+  become: true
+  ansible.posix.synchronize:
+    src: ../../../assets/pacman-hooks/
+    dest: /etc/pacman.d/hooks/
+    archive: false
+    recursive: true
+
+- name: Enable pacman features
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      [options]
+      Color
+      ILoveCandy
+      ParallelDownloads = 5
+    marker: " # {mark} ANSIBLE MANAGED BLOCK for pacman features"
+    state: present
+
+- name: Enable `universe` repo for `archlinux` support
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      ### Additional "universe" repo
+      [universe]
+      Server = https://universe.artixlinux.org/$arch
+      Server = https://mirror1.artixlinux.org/universe/$arch
+      Server = https://mirror.pascalpuffke.de/artix-universe/$arch
+      Server = https://artixlinux.qontinuum.space/artixlinux/universe/os/$arch
+      Server = https://mirror1.cl.netactuate.com/artix/universe/$arch
+      Server = https://ftp.crifo.org/artix-universe/
+      Server = https://artix.sakamoto.pl/universe/$arch
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for universe"
+    state: present
+
+- name: Install `archlinux` support
+  become: true
+  package:
+    name: artix-archlinux-support
+    state: present
+
+- name: Enable arch repositories
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/pacman.conf
+    block: |
+      ### Arch Repos
+      #[testing]
+      #Include = /etc/pacman.d/mirrorlist-arch
+
+      [extra]
+      Include = /etc/pacman.d/mirrorlist-arch
+
+      #[community-testing]
+      #Include = /etc/pacman.d/mirrorlist-arch
+
+      [community]
+      Include = /etc/pacman.d/mirrorlist-arch
+
+      #[multilib-testing]
+      #Include = /etc/pacman.d/mirrorlist-arch
+
+      [multilib]
+      Include = /etc/pacman.d/mirrorlist-arch
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for arch repositories"
+    state: present
+
+- name: Update `pacman` cache after support for arch repositories
+  become: true
+  community.general.pacman:
+    update_cache: true

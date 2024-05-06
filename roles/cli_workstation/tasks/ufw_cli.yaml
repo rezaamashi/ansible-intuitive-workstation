@@ -1,0 +1,49 @@
+---
+- name: Make sure that ufw is installed
+  become: true
+  ansible.builtin.package:
+    name: ufw
+    state: present
+
+- name: Make sure if ufw-runit is installed
+  when: ansible_service_mgr == "runit"
+  become: true
+  ansible.builtin.package:
+    name: ufw-runit
+    state: present
+  register: ufw_runit_check
+  tags:
+    - runit.service.check
+
+- name: Make sure that ufw-runit is enabled
+  become: true
+  when: runit_service_dir_check.stat.exists
+  community.general.runit:
+    enabled: true
+    name: ufw
+    service_src: /etc/runit/sv
+    service_dir: /run/runit/service
+    state: started
+  tags:
+    - runit.cli.enable
+
+- name: Enable UFW
+  become: true
+  when: runit_service_dir_check.stat.exists
+  community.general.ufw:
+    state: enabled
+
+- name: Allow SSH
+  become: true
+  when: runit_service_dir_check.stat.exists
+  community.general.ufw:
+    name: SSH
+    rule: allow
+
+- name: Allow http port
+  become: true
+  when: runit_service_dir_check.stat.exists
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp

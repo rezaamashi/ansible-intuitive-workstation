@@ -1,0 +1,19 @@
+---
+- name: Make sure that tmux is installed
+  become: true
+  ansible.builtin.package:
+    name: tmux
+    state: present
+
+- name: Create .config directory in root
+  become: true
+  ansible.builtin.file:
+    path: "/home/root/.config"
+    state: directory
+
+- name: Synchronize `tmux` config for root
+  become: true
+  ansible.posix.synchronize:
+    src: "../../../assets/rootconfig/tmux/"
+    dest: "/home/root/.config/tmux/"
+    recursive: true

@@ -1,0 +1,74 @@
+---
+## Root Cronjobs
+- name: Creates cronjob to update pacman-keys
+  become: true
+  ansible.builtin.cron:
+    name: pacman-key update
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "14"
+    user: root
+    job: "pacman-key --init && pacman-key --refresh-keys"
+    cron_file: ansible_pacman_key_update
+    state: present
+
+- name: Creates a cronjob to download only packages
+  become: true
+  ansible.builtin.cron:
+    name: pacman download-only
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "15"
+    user: root
+    job: "pacman -Syyuw --noconfirm"
+    cron_file: ansible_pacman_download_only
+    state: present
+
+## User Cronjobs
+- name: Creates a cronjob to update fzf-tab
+  become: true
+  ansible.builtin.cron:
+    name: fzf-tab update
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "17"
+    user: "{{ user.name }}"
+    job: "git pull ~/.config/zsh/plugins/fzf-tab"
+    cron_file: ansible_zsh_fzf_tab_update
+    state: present
+
+- name: Creates a cronjob to update zsh-autosuggestions
+  become: true
+  ansible.builtin.cron:
+    name: zsh-autosuggestions update
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "17"
+    user: "{{ user.name }}"
+    job: "git pull ~/.config/zsh/plugins/zsh-autosuggestions"
+    cron_file: ansible_zsh_autosuggestions_update
+    state: present
+
+- name: Creates a cronjob to update zsh-history-substring-search
+  become: true
+  ansible.builtin.cron:
+    name: zsh-history-substring-search update
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "17"
+    user: "{{ user.name }}"
+    job: "git pull ~/.config/zsh/plugins/zsh-history-substring-search"
+    cron_file: ansible_zsh_history_substring_search_update
+    state: present
+
+- name: Creates a cronjob to update zsh-syntax-highlighting
+  become: true
+  ansible.builtin.cron:
+    name: zsh-syntax-highlighting update
+    weekday: "3,6,7"
+    minute: "0"
+    hour: "17"
+    user: "{{ user.name }}"
+    job: "git pull ~/.config/zsh/plugins/zsh-syntax-highlighting"
+    cron_file: ansible_zsh_syntax_highlighting_update
+    state: present
