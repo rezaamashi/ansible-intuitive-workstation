@@ -5,12 +5,21 @@
     get_checksum: false
   register: efi_dir_check
 
+- name: Get drive name for BIOS install
+  when: not efi_dir_check.stat.exists
+  shell: |
+    lsblk -no pkname "$(df -P "$PWD" | awk 'NR==2 {print $1}')"
+  args:
+    executable: /bin/bash
+  register: drive_name
+
 - name: Install `grub` on BIOS system
   when: not efi_dir_check.stat.exists
-  ansible.builtin.command: grub-install --target=i386-pc --recheck /dev/sdX
+  ansible.builtin.command: grub-install --target=i386-pc --recheck /dev/{{ drive_name.stdout }}
   become: true
 
 - name: Install `grub` on EFI system
+  when: efi_dir_check.stat.exists
   ansible.builtin.command: grub-install --target=x86_64-efi --efi-directory={{ efi_directory }} --bootloader-id=GRUB
   become: true
 
