@@ -26,6 +26,7 @@
   include_tasks: ufw_cli.yaml
 
 - name: Configure dnscrypt
+  when: ansible_service_mgr == "runit" and runit_service_dir_check.stat.exists
   include_tasks: dnscrypt.yaml
 
 - name: Configure cron jobs
