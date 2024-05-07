@@ -36,7 +36,12 @@
     marker: "# {mark} ANSIBLE MANAGED BLOCK for universe"
     state: present
 
-- name: Install `archlinux` support
+- name: Update `pacman` cache after adding `universe` repo
+  become: true
+  community.general.pacman:
+    update_cache: true
+
+- name: Install `archlinux` support package
   become: true
   package:
     name: artix-archlinux-support
