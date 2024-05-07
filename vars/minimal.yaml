@@ -143,8 +143,8 @@ workstation_minimal_packages:
   - zenity
 
 workstation_gnome_packages:
-  - gnome-shell
-  - xdg-desktop-portal-gnome
+  - gnome
+  #- gnome-extra
 
 workstation_aur_common_packages:
   - brave-bin
