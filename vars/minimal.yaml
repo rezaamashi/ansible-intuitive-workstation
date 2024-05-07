@@ -194,6 +194,6 @@ efi_directory: /boot/efi
 swap_file_path: /swapfile
 swappiness: 1
 grub_directory: /boot/grub
-grub_themename: lenovo
+grub_themename: lenovo # artix-linux thinkpad lenovo
 sddm_themename: sugar-candy
 terminal_emulator: alacritty
