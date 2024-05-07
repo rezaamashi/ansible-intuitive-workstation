@@ -90,8 +90,6 @@ workstation_runit_packages:
   - { package: bluez-runit, service: bluetoothd }
 
 workstation_common_packages:
-  - audacious
-  - audacious-plugins
   - aspell
   - aspell-en
   - xf86-video-intel
@@ -113,11 +111,10 @@ workstation_common_packages:
   - wev
   - wmctrl # for libinput-gestures and safeeyes
   - python-croniter # for safeeyes health stats
-  - zathura
-  - zathura-pdf-mupdf
-  - zathura-djvu
 
 workstation_minimal_packages:
+  - audacious
+  - audacious-plugins
   - network-manager-applet
   - dunst
   - dash
@@ -141,6 +138,9 @@ workstation_minimal_packages:
   - udiskie
   - waybar
   - zenity
+  - zathura
+  - zathura-pdf-mupdf
+  - zathura-djvu
 
 workstation_gnome_packages:
   - gnome
