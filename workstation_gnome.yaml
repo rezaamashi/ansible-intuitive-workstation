@@ -3,7 +3,7 @@
   hosts: localhost
   gather_facts: true
   vars_files:
-    - minimal.config.yaml
+    - minimal.yaml
 
   vars_prompt:
     - name: password
